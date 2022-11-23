@@ -77,26 +77,28 @@ ipcMain.handle("generateAppPackage", async(event, args) => {
 });
 
 async function initVals(options){
-  console.log(">> initVals()");
-  // console.log("options >>"+options);
-  // console.log("options >>"+(JSON.parse(options).appVersion));
-  // console.log("options >>"+(JSON.parse(options).orientation));
-  // console.log("options >>"+(JSON.parse(options).signingMode));
-  apkSettings = (JSON.parse(options));
-  // console.log("apkSettings >>"+apkSettings.signingMode);
-  let projectDirPath = (tmp_1.dirSync({ prefix: "pwabuilder-cloudapk-" })).name;
-  console.log("projectDirPath >>"+projectDirPath);
-  projectDirectory = projectDirPath;
-  const signing = await createLocalSigninKeyInfo(apkSettings, projectDirPath);
-  signingKeyInfo = signing;
-  javaConfig = new core_1.Config(process.env.JDK8PATH, process.env.ANDROIDTOOLSPATH);
-  console.log("process.env.JDK8PATH >>", process.env.JDK8PATH);
-  console.log("process.env.ANDROIDTOOLSPATH >>", process.env.ANDROIDTOOLSPATH);
-  jdkHelper = new core_1.JdkHelper(process, javaConfig);
-  console.log("jdkHelper >>"+jdkHelper);
-  androidSdkTools = new core_1.AndroidSdkTools(process, javaConfig, jdkHelper);
-  console.log("androidSdkTools >>"+androidSdkTools);
-}
+    console.log(">> initVals()");
+    // console.log("options >>"+options);
+    // console.log("options >>"+(JSON.parse(options).appVersion));
+    // console.log("options >>"+(JSON.parse(options).orientation));
+    // console.log("options >>"+(JSON.parse(options).signingMode));
+    apkSettings = (JSON.parse(options));
+    // console.log("apkSettings >>"+apkSettings.signingMode);
+    let projectDirPath = (tmp_1.dirSync({ prefix: "pwabuilder-cloudapk-" })).name;
+    console.log("projectDirPath >>"+projectDirPath);
+    projectDirectory = projectDirPath;
+    const signing = await createLocalSigninKeyInfo(apkSettings, projectDirPath);
+    signingKeyInfo = signing;
+    const javaPath = path.join(__dirname, process.env.JDK8PATH);
+    const androidPath = path.join(__dirname, process.env.ANDROIDTOOLSPATH);
+    javaConfig = new core_1.Config(javaPath, androidPath);
+    console.log("process.env.JDK8PATH >>", javaPath);
+    console.log("process.env.ANDROIDTOOLSPATH >>", androidPath);
+    jdkHelper = new core_1.JdkHelper(process, javaConfig);
+    console.log("jdkHelper >>"+jdkHelper);
+    androidSdkTools = new core_1.AndroidSdkTools(process, javaConfig, jdkHelper);
+    console.log("androidSdkTools >>"+androidSdkTools);
+  }
 
 async function createLocalSigninKeyInfo(apkSettings, projectDir) {
   console.log(">> createLocalSigninKeyInfo()");

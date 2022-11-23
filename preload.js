@@ -13,6 +13,7 @@
 // })
 
 const { contextBridge, ipcRenderer, shell } = require('electron');
+// const ReactDOM = require('react-dom');
 
 contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
@@ -45,6 +46,9 @@ const exposedAPI = {
         APK: ${buildOutput.apkFilePath}`;
     });
   }
+  // setBasicWindow: ()=> {
+  //   const advancedOptionDiv = ReactDOM.createRoot(document.getElementById('advancedOptionDiv'));
+  // }
 };
 
 contextBridge.exposeInMainWorld("electron", exposedAPI);
