@@ -19,10 +19,17 @@ contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
-  generateApp: async(options) => { 
-    const codeArea = document.querySelector("textarea");
-    options = JSON.stringify(JSON.parse(codeArea.value));
-    await ipcRenderer.invoke('generateAppPackage', (options));
+  generateApp: async(options, basicMode) => { 
+    if(basicMode){
+      await ipcRenderer.invoke('generateAppPackage', (options));//invoke the func in main.js
+    }else{
+      const codeArea = document.querySelector("textarea");
+      console.log("codeArea.value:" +codeArea.value);
+      options = JSON.stringify(JSON.parse(codeArea.value));
+      console.log("options:" + options);
+
+      await ipcRenderer.invoke('generateAppPackage', (options));//invoke the func in main.js
+    }
   },
   // we can also expose variables, not just functions
 });

@@ -15,15 +15,18 @@ const submitBtn = document.querySelector("#submitBtn")
 const resultsDiv = document.querySelector("#results");
 const spinner = document.querySelector(".spinner-border");
 
-// unsignedBtn.addEventListener("click", () => setCode(getUnsignedApkOptions()));
-signedBtn.addEventListener("click", () => setCode(getSignedApk()));
+var basicMode = true;
+
+//sundy comment below lines 11172022
+//unsignedBtn.addEventListener("click", () => setCode(getUnsignedApkOptions()));
+signedBtn.addEventListener("click", () => setCode(getUnsignedApkOptions())); 
 // existingKeyBtn.addEventListener("click", () => setCode(getExistingKeySignedApk()))
 chooseKeyBtn.addEventListener("click", () => filePicker.click());
 filePicker.addEventListener("change", (e) => keyFileChosen(e));
 submitBtn.addEventListener("click", () => submit());
 
 setWindowModeListener();
-setCode(getSignedApk());
+setCode(getUnsignedApkOptions()); // sundy 
 codeArea.scrollTop = 0;
 
 window.electron.buildFinished((buildOutput) => {
@@ -36,6 +39,9 @@ function setWindowModeListener(){
         function(){
             if ($(this).is(':checked') && $(this).is('#advancedSwitch')) {
                 console.log("advanced mode on");
+                basicMode = false;
+                setCode(getUnsignedApkOptions()); // sundy 
+
                 $("#basicInputDiv").hide(); 
                 $("#basicInputDiv").children().hide(); 
                 $("#advancedOptionDiv").show(); 
@@ -44,6 +50,7 @@ function setWindowModeListener(){
                 $("#advancedInputDiv").children().show();
             }else if (!$(this).is(':checked') && $(this).is('#advancedSwitch')) {
                 console.log("advanced mode off");
+                basicMode = true;
                 $("#basicInputDiv").show(); 
                 $("#basicInputDiv").children().show(); 
                 $("#advancedOptionDiv").hide(); 
@@ -65,34 +72,49 @@ function setCode(options) {
 
 function getUnsignedApkOptions() {
     return {
+        host: "https://bing.com",
+        iconUrl: "./image/launch_icon_early_spring_draw_512x512.png",
+        maskableIconUrl:"./image/maskable_icon_app_icon_lake_lawn_512x512.png",
+        //monochromeIconUrl: undefined,   sundy
+        launcherName: "Bing",
+        name: "Bing",
+        packageId: "com.bing.twa",
         appVersion: "1.0.0.0",
         appVersionCode: 1,
+        signingMode: "new", // none -> new  by sundy 11 17 2022
+        //changed below: null -> {} content  sundy 11172022
+        signing: {
+            //"keyFilePath": "",  //sundy add this one for keystore file select
+            "alias": "my-key-alias",
+            "fullName": "John Doe",
+            "organization": "Contoso",
+            "organizationalUnit": "Engineering Department",
+            "countryCode": "US",
+            "keyPassword": "key123",
+            "storePassword": "store1"
+        },
+        startUrl: "/",  //changed to "/"   sundy 091522
+        webManifestUrl: "", //sundy value can be ""
         backgroundColor: "#3f51b5",
         display: "standalone",
-        enableSiteSettingsShortcut: true,
+        //enableSiteSettingsShortcut: true,  //sundy
         enableNotifications: false,
         fallbackType: "customtabs",
-        features: {
+        /*features: {
             locationDelegation: {
                 enabled: true
             },
             playBilling: {
                 enabled: false
             }
-        },
-        host: "https://sadchonks.com",
-        iconUrl: "https://sadchonks.com/kitteh-512.png",
-        launcherName: "Chonks",
-        maskableIconUrl: "https://sadchonks.com/kitteh-512.png",
-        monochromeIconUrl: undefined,
-        name: "Sad Chonks",
+        },*///sundy 
+        
         navigationColor: "#3f51b5",
         navigationColorDark: "#3f51b5",
         navigationDividerColor: "#3f51b5",
         navigationDividerColorDark: "#3f51b5",
         orientation: "default",
-        packageId: "com.sadchonks",
-        shareTarget: {
+        /*shareTarget: {
             action: "/share-target/",
             method: "GET",
             params: {
@@ -101,7 +123,7 @@ function getUnsignedApkOptions() {
               url: "url"
             }
         },
-        shortcuts: [{
+         shortcuts: [{
             name: "New Chonks",
             short_name: "New",
             url: "/?shortcut",
@@ -111,31 +133,27 @@ function getUnsignedApkOptions() {
                     "src": "/favicon.png"
                 }
             ]
-        }],
-        signingMode: "none",
-        signing: null,
+        }],*///sundy 
         splashScreenFadeOutDuration: 300,
-        startUrl: "/saved",
-        themeColor: "#3f51b5",
-        webManifestUrl: "https://sadchonks.com/manifest.json"
+        themeColor: "#3f51b5"
     };
 }
 
-function getSignedApk() {
+/*function getSignedApk() {
     const options = getUnsignedApkOptions();
     options.signingMode = "new";
     options.signing = {
-        file: null,
+        //sundy file: null,
         alias: "my-android-key",
         fullName: "John Doe",
         organization: "Contoso",
         organizationalUnit: "Engineering Department",
         countryCode: "US",
-        keyPassword: "aBc123%",
+        keyPassword: "aBc123$%",
         storePassword: "iOp987#@"
     };
     return options;
-}
+}*///sundy
 
 // function getExistingKeySignedApk() {
 //     const options = getSignedApk();
@@ -148,9 +166,22 @@ function getSignedApk() {
 // }
 
 function keyFileChosen(e) {
+    console.log("file selected:", filePicker.files);
     if (filePicker.files) {
-        const options = getSignedApk();
         
+        options =getUnsignedApkOptions();
+        options.signing.keyFilePath = filePicker.files[0].path;
+        options.signingMode ="selected";
+        options.signing.keyPassword = "huawei";
+        options.signing.storePassword = "huawei";
+        //options.signing.keyFilePath = options.keyFilePath;
+        console.log("file selected:", options.signing.keyFilePath);
+        setCode(options );
+    /*    const keyPathSelected = filePicker.files[0].path;
+        keyOptions= {path: keyPathSelected, password: options.storePassword, keypassword:options.keyPassword};
+        alias_parsed = KeyTool_v2.keyInfo(keyOptions);
+        console.log("alias+fingerprint maps:", alias_parsed);
+        console.log("alias value:", alias_parsed.get('Alias name'));
         // Read the file 
         const fileReader = new FileReader();
         fileReader.onload = () => {
@@ -159,22 +190,63 @@ function keyFileChosen(e) {
         }
         fileReader.readAsDataURL(filePicker.files[0]);
 
+        console.log("file selected:", filePicker.files[0].path);
         filePicker.file = null;
+        *///sundy
     }
 }
 
 async function submit() {
-    console.log(">> submit()");
+    console.log(">> submit() , and basicMode =" + basicMode);
     resultsDiv.textContent = "";
-
+    var options = null; 
     setLoading(true);
     try {
-        // Convert the JSON to an object and back to a string to ensure proper formatting.
-        const options = JSON.stringify(JSON.parse(codeArea.value));
-        // console.log("options >>"+options);
-        // const response = await window.versions.generateApp(options);
-        await window.versions.generateApp(options);
-        // console.log(response)
+
+        if( basicMode ){
+            //sundy get URL , App Name input
+            const urlInput= document.getElementById("urlInput").value;
+            const appName= document.getElementById("appName").value;
+            console.log("options urlInput, appname :"+ urlInput + ", "+appName);
+            // Convert the JSON to an object and back to a string to ensure proper formatting.
+            const jsonOption = JSON.parse(codeArea.value) ;
+
+            //sundy get urlInput text. process to get host and packageId
+            jsonOption.host = urlInput ;
+
+            let hostS = new URL(urlInput);
+            const hostProtocol = `${hostS.protocol}//`;
+            let hostWithoutHttps = hostS.href.substr(hostProtocol.length);
+            let strArr = hostWithoutHttps.split("\/");  //in case like xxx.com/xxx 
+            let hostStr = strArr[0];
+            let hostPieceArr = hostStr.split("\."); 
+
+            let len = hostPieceArr.length;
+            packageId ="";
+            for(i = 0; i<len; i++){
+                if (i > 0)
+                    packageId =packageId +"." +  hostPieceArr[len-1-i];// reverse the host name as package id sundy
+                else
+                    packageId =hostPieceArr[len-1-i];// reverse the host name as package id sundy
+                    
+            }
+            packageId = packageId + ".twa"; 
+            jsonOption.packageId = packageId;
+
+            //sundy get App Name
+            jsonOption.launcherName = appName ; 
+            jsonOption.name= appName ; 
+
+            options = JSON.stringify(jsonOption);
+            console.log("options: " + options);
+            console.log("jsonoptions: " + jsonOption+", jsonoptions.host:" + jsonOption.host);
+
+            setCode(options); //asign to texarea  sundy
+        } else{
+            const jsonOption = JSON.parse(codeArea.value) ;
+            options = JSON.stringify(jsonOption);
+        }
+        await window.versions.generateApp(options,basicMode);// preload.js generateApp
 
     } catch(err) {
         resultsDiv.textContent = "Failed. Error: " + err;
