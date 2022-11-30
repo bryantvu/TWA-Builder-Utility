@@ -20,6 +20,7 @@ var javaConfig;
 var jdkHelper;
 var androidSdkTools;
 
+
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -77,29 +78,30 @@ ipcMain.handle("generateAppPackage", async(event, args) => {
 });
 
 async function initVals(options){
-  console.log(">> initVals()");
-  // console.log("options >>"+options);
-  // console.log("options >>"+(JSON.parse(options).appVersion));
-  // console.log("options >>"+(JSON.parse(options).orientation));
-  // console.log("options >>"+(JSON.parse(options).signingMode));
-  apkSettings = (JSON.parse(options));
-  // console.log("apkSettings >>"+apkSettings.signingMode);
-  let projectDirPath = (tmp_1.dirSync({ prefix: "pwabuilder-cloudapk-" })).name;
-  console.log("projectDirPath >>"+projectDirPath);
-  projectDirectory = projectDirPath;
-  //const signing = await createLocalSigninKeyInfo(apkSettings, projectDirPath);
-  signingKeyInfo = apkSettings.signing;
-  javaConfig = new core_1.Config(process.env.JDK8PATH, process.env.ANDROIDTOOLSPATH);
-  console.log("process.env.JDK8PATH >>", process.env.JDK8PATH);
-  console.log("process.env.ANDROIDTOOLSPATH >>", process.env.ANDROIDTOOLSPATH);
-  jdkHelper = new core_1.JdkHelper(process, javaConfig);
-  console.log("jdkHelper >>"+jdkHelper);
-  androidSdkTools = new core_1.AndroidSdkTools(process, javaConfig, jdkHelper);
-  console.log("androidSdkTools >>"+androidSdkTools);
-  console.log("apkSettings.keyFilePath>>"+apkSettings.keyFilePath);
+    console.log(">> initVals()");
+    // console.log("options.host>>"+options.host);
+     // console.log("options >>"+(JSON.parse(options).orientation));
+    // console.log("options >>"+(JSON.parse(options).signingMode));
+    apkSettings = (JSON.parse(options));
+    //apkSettings = options;//options is json obj here sundy
+    // console.log("apkSettings >>"+apkSettings.signingMode);
+    let projectDirPath = (tmp_1.dirSync({ prefix: "pwabuilder-cloudapk-" })).name;
+    console.log("projectDirPath >>"+projectDirPath);
+    projectDirectory = projectDirPath;
+    //sundy const signing = await createLocalSigninKeyInfo(apkSettings, projectDirPath);
+    signingKeyInfo = apkSettings.signing;//sundy
+    const javaPath = path.join(__dirname, process.env.JDK8PATH);
+    const androidPath = path.join(__dirname, process.env.ANDROIDTOOLSPATH);
+    javaConfig = new core_1.Config(javaPath, androidPath);
+    console.log("process.env.JDK8PATH >>", javaPath);
+    console.log("process.env.ANDROIDTOOLSPATH >>", androidPath);
+    jdkHelper = new core_1.JdkHelper(process, javaConfig);
+    console.log("jdkHelper >>"+jdkHelper);
+    androidSdkTools = new core_1.AndroidSdkTools(process, javaConfig, jdkHelper);
+    console.log("androidSdkTools >>"+androidSdkTools);
+  }
 
-}
-/*
+/* sundy comment this func, not use this one
 async function createLocalSigninKeyInfo(apkSettings, projectDir) {
   console.log(">> createLocalSigninKeyInfo()");
   var _a;
@@ -116,8 +118,7 @@ async function createLocalSigninKeyInfo(apkSettings, projectDir) {
           throw new Error("Signing mode is 'mine', but no signing key file was supplied.");
       }
       const fileBuffer = base64ToBuffer(apkSettings.signing.file);
-      await fs_extra_1.promises.writeFile(keyFilePath,fileBuffer);//  JSON.stringify(apkSettings.signing) );//fileBuffer -> signing.file and add JSON.stringify() sundy
-      //await fs_extra_1.promises.writeFile(keyFilePath, JSON.stringify(apkSettings.signing) );//fileBuffer -> signing.file and add JSON.stringify() sundy
+      await fs_extra_1.promises.writeFile(keyFilePath, fileBuffer);
   }
   function base64ToBuffer(base64) {
       const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
@@ -196,7 +197,6 @@ async function generateTwaProject() {
     console.log(">> generateTwaProject()");
     //sundy changed to be below  const twaGenerator = new core_1.TwaGenerator();
     const twaGenerator = new TwaGenerator_v2.TwaGenerator_v2();
-
     const twaManifest = createTwaManifest(apkSettings);
     await twaGenerator.createTwaProject(projectDirectory, twaManifest, new core_1.ConsoleLog());
     return twaManifest;
@@ -211,13 +211,10 @@ async function createSigningKey(signingInfo) {
     if (!signingInfo.fullName || !signingInfo.organization || !signingInfo.organizationalUnit || !signingInfo.countryCode) {
         throw new Error(`Missing required signing info. Full name: ${signingInfo.fullName}, Organization: ${signingInfo.organization}, Organizational Unit: ${signingInfo.organizationalUnit}, Country Code: ${signingInfo.countryCode}.`);
     }
-
     //sundy get signing file path
     const keyFilePath = path.join(projectDirectory, "signingKey.keystore");
     console.log("keyFilePath >>"+keyFilePath);
     signingInfo.keyFilePath = keyFilePath;
-
-
     const keyOptions = {
         path: signingInfo.keyFilePath,
         password: signingInfo.storePassword,
@@ -249,12 +246,11 @@ async function optimizeApk(apkFilePath) {
 async function signApk(apkFilePath, signingInfo) {
   console.log(">> signApk()");
     // Create a new signing key if necessary.
-    //sundy add apkSettings.signingMode === mine, change === to ==
-    if (apkSettings.signingMode === "new" ||apkSettings.signingMode === "mine" ) {
+    if (apkSettings.signingMode === "new") {
         await createSigningKey(signingInfo);
     }else if(apkSettings.signingMode === "selected") { //sundy select key file
         const keyTool = new KeyTool_v2.KeyTool_v2(jdkHelper);
-        const keyOptions = {path:apkSettings.keyFilePath, keypassword: signingInfo.keyPassword, password:signingInfo.storePassword};
+        const keyOptions = {path:apkSettings.signing.keyFilePath, keypassword: signingInfo.keyPassword, password:signingInfo.storePassword};
        
         const alias_finger_arr = await keyTool.keyInfo(keyOptions) ; 
         const alias_finger = alias_finger_arr.fingerprints ; 
