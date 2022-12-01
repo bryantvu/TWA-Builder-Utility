@@ -8,6 +8,9 @@ const KeyTool_1 = require("./node_modules/@bubblewrap/core/dist/lib/jdk/KeyTool"
 const tmp_1 = require("tmp");
 const fs_extra_1 = require("fs-extra");
 
+const jdkPath = "/java";
+const androidSdkPath = "/AndroidSdk";
+
 var mainWindow;
 //required for process.env to work
 require('dotenv').config();
@@ -89,11 +92,11 @@ async function initVals(options){
     projectDirectory = projectDirPath;
     const signing = await createLocalSigninKeyInfo(apkSettings, projectDirPath);
     signingKeyInfo = signing;
-    const javaPath = path.join(__dirname, process.env.JDK8PATH);
-    const androidPath = path.join(__dirname, process.env.ANDROIDTOOLSPATH);
+    const javaPath = path.join(__dirname, jdkPath);
+    const androidPath = path.join(__dirname, androidSdkPath);
     javaConfig = new core_1.Config(javaPath, androidPath);
-    console.log("process.env.JDK8PATH >>", javaPath);
-    console.log("process.env.ANDROIDTOOLSPATH >>", androidPath);
+    console.log("javaPath >>", javaPath);
+    console.log("androidSdkPath >>", androidPath);
     jdkHelper = new core_1.JdkHelper(process, javaConfig);
     console.log("jdkHelper >>"+jdkHelper);
     androidSdkTools = new core_1.AndroidSdkTools(process, javaConfig, jdkHelper);

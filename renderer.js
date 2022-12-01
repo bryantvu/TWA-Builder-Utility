@@ -35,7 +35,8 @@ function setWindowModeListener(){
     $('input:checkbox').change(
         function(){
             if ($(this).is(':checked') && $(this).is('#advancedSwitch')) {
-                console.log("advanced mode on");
+                // console.log("advanced mode on");
+                setCode(getSignedApk());
                 $("#basicInputDiv").hide(); 
                 $("#basicInputDiv").children().hide(); 
                 $("#advancedOptionDiv").show(); 
@@ -43,7 +44,7 @@ function setWindowModeListener(){
                 $("#advancedInputDiv").show(); 
                 $("#advancedInputDiv").children().show();
             }else if (!$(this).is(':checked') && $(this).is('#advancedSwitch')) {
-                console.log("advanced mode off");
+                // console.log("advanced mode off");
                 $("#basicInputDiv").show(); 
                 $("#basicInputDiv").children().show(); 
                 $("#advancedOptionDiv").hide(); 
@@ -121,6 +122,16 @@ function getUnsignedApkOptions() {
     };
 }
 
+function getBasicApk(){
+    let options = getSignedApk();
+    options.host = $('#urlInput').val();
+    options.launcherName = $('#appName').val();
+    options.name = $('#appName').val();
+    options.packageId = "com."+(($('#appName').val()).replace(/\s+/g, '')).toLowerCase()+".twa";
+    return options;
+    
+}
+
 function getSignedApk() {
     const options = getUnsignedApkOptions();
     options.signingMode = "new";
@@ -167,21 +178,61 @@ async function submit() {
     console.log(">> submit()");
     resultsDiv.textContent = "";
 
-    setLoading(true);
-    try {
-        // Convert the JSON to an object and back to a string to ensure proper formatting.
-        const options = JSON.stringify(JSON.parse(codeArea.value));
-        // console.log("options >>"+options);
-        // const response = await window.versions.generateApp(options);
-        await window.versions.generateApp(options);
-        // console.log(response)
+    //advanced mode
+    if ($('#advancedSwitch').is(':checked')) {
+        console.log("build advanced");
+        setLoading(true);
+        try {
+            // Convert the JSON to an object and back to a string to ensure proper formatting.
+            const options = JSON.stringify(JSON.parse(codeArea.value));
+            // console.log("options >>"+options);
+            // const response = await window.versions.generateApp(options);
+            await window.versions.generateApp(options);
+            // console.log(response)
+    
+        } catch(err) {
+            resultsDiv.textContent = "Failed. Error: " + err;
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+    //basic mode
+    else if (!$('#advancedSwitch').is(':checked')) {
+        if($('#urlInput').val() && $('#appName').val() && isValidHttpUrl($('#urlInput').val())){
+            console.log("build basic");
+            setLoading(true);
+            try {
+                setCode(getBasicApk());
+                // Convert the JSON to an object and back to a string to ensure proper formatting.
+                const options = JSON.stringify(JSON.parse(codeArea.value));
+                // console.log("options >>"+options);
+                // const response = await window.versions.generateApp(options);
+                await window.versions.generateApp(options);
+                // console.log(response)
+        
+            } catch(err) {
+                resultsDiv.textContent = "Failed. Error: " + err;
+            }
+            finally {
+                setLoading(false);
+            }
+        }else{ 
+            resultsDiv.textContent = "Please enter ";
 
-    } catch(err) {
-        resultsDiv.textContent = "Failed. Error: " + err;
+            if(!$('#urlInput').val()){
+                resultsDiv.textContent += "a website URL ";
+            }else if(!isValidHttpUrl($('#urlInput').val())){
+                resultsDiv.textContent += "a valid website URL ";
+            }
+            
+            if(!$('#appName').val()){
+                resultsDiv.textContent += "and an app name";
+            }
+        }
+        
     }
-    finally {
-        setLoading(false);
-    }
+    
 
     
 }
@@ -195,3 +246,13 @@ function setLoading(state) {
         spinner.classList.add("d-none");
     }
 }
+
+function isValidHttpUrl(string) {
+    let url;
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;
+    }
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
