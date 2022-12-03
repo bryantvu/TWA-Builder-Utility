@@ -62,18 +62,24 @@ app.on('window-all-closed', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipcMain.handle("generateAppPackage", async(event, args) => {
+ipcMain.handle("generateAppPackage", async(event, args  ) => {
     
   // Send result back to renderer process
   await initVals(args);
-  const buildOutput = await generateAppPackage();
-  console.log("buildOutput >>"+buildOutput.projectDirectory);
-  console.log("buildOutput >>"+buildOutput.apkFilePath);
-  console.log("buildOutput >>"+buildOutput.signingInfo);
-  mainWindow.webContents.send('build-output', buildOutput);
-  // const apkPath = buildOutput.projectDirectory+"/app/build/outputs/apk/release";
-  // console.log("apkPath >> "+apkPath);
-  shell.showItemInFolder(path.normalize(buildOutput.apkFilePath));
+  const buildOutput = await generateAppPackage(); //sundy can get the return result 
+  if(typeof buildOutput == 'object'){ //succ  sundy
+    console.log("buildOutput >>"+buildOutput.projectDirectory);
+    console.log("buildOutput >>"+buildOutput.apkFilePath);
+    console.log("buildOutput >>"+buildOutput.signingInfo);
+    mainWindow.webContents.send('build-output', buildOutput );
+    // const apkPath = buildOutput.projectDirectory+"/app/build/outputs/apk/release";
+    // console.log("apkPath >> "+apkPath);
+    shell.showItemInFolder(path.normalize(buildOutput.apkFilePath));
+  }else{
+    console.log("Error when generateAppPackage!");
+    //strResGenerateApp.err = buildOutput; //if error. sundy
+    mainWindow.webContents.send('build-output', buildOutput);
+  }
   return buildOutput;
 });
 
@@ -140,34 +146,41 @@ async function createLocalSigninKeyInfo(apkSettings, projectDir) {
 async function generateAppPackage() {
     console.log(">> generateAppPackage()");
     // Create an optimized APK.      
-    await generateTwaProject();
-    const apkPath = await buildApk();
-    // const optimizedApkPath = await optimizeApk(apkPath);
-    const optimizedApkPath = apkPath;
-    // Do we have a signing key?
-    // If so, sign the APK, generate digital asset links file, and generate an app bundle.
-    if (apkSettings.signingMode !== "none" && signingKeyInfo) {
-      console.log("return >> signed APK");
-      const signedApkPath = await signApk(optimizedApkPath, signingKeyInfo);
-      const assetLinksPath = await tryGenerateAssetLinks(signingKeyInfo);
-      const appBundlePath = await buildAppBundle(signingKeyInfo);
-      return {
-          projectDirectory: projectDirectory,
-          appBundleFilePath: appBundlePath,
-          apkFilePath: signedApkPath,
-          signingInfo: signingKeyInfo,
-          assetLinkFilePath: assetLinksPath
-      };
+    strResult = await generateTwaProject();
+    if(typeof strResult == 'object'){//succ sundy  , if it's string , then failed 
+        const apkPath = await buildApk();
+        // const optimizedApkPath = await optimizeApk(apkPath);
+        const optimizedApkPath = apkPath;
+        // Do we have a signing key?
+        // If so, sign the APK, generate digital asset links file, and generate an app bundle.
+        if (apkSettings.signingMode !== "none" && signingKeyInfo) {
+            console.log("return >> signed APK");
+            const signedApkPath = await signApk(optimizedApkPath, signingKeyInfo);
+            const assetLinksPath = await tryGenerateAssetLinks(signingKeyInfo);
+            const appBundlePath = await buildAppBundle(signingKeyInfo);
+            return {
+                projectDirectory: projectDirectory,
+                appBundleFilePath: appBundlePath,
+                apkFilePath: signedApkPath,
+                signingInfo: signingKeyInfo,
+                assetLinkFilePath: assetLinksPath
+            };
+        }else{//failed sundy
+            strResult = "Error for signing mode: "+apkSettings.signingMode +", or signing key: "+signingKeyInfo;
+            return strResult;
+        }
+    }else{
+        return strResult
     }
     // We generated an unsigned APK, so there will be no signing info, asset links, or app bundle.
-    console.log("return >> unsigned APK");
+    /*console.log("return >> unsigned APK");
     return {
         projectDirectory: projectDirectory,
         apkFilePath: optimizedApkPath,
         signingInfo: signingKeyInfo,
         assetLinkFilePath: null,
         appBundleFilePath: null,
-    };
+    };*/
 }
 async function buildAppBundle(signingInfo) {
   console.log(">> buildAppBundle()");
@@ -198,8 +211,11 @@ async function generateTwaProject() {
     //sundy changed to be below  const twaGenerator = new core_1.TwaGenerator();
     const twaGenerator = new TwaGenerator_v2.TwaGenerator_v2();
     const twaManifest = createTwaManifest(apkSettings);
-    await twaGenerator.createTwaProject(projectDirectory, twaManifest, new core_1.ConsoleLog());
-    return twaManifest;
+    const strResult = await twaGenerator.createTwaProject(projectDirectory, twaManifest, new core_1.ConsoleLog());
+    if(strResult == undefined)
+        return twaManifest;
+    else
+        return strResult;
 }
 
 async function createSigningKey(signingInfo) {

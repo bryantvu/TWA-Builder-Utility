@@ -10,9 +10,9 @@
     <title>TWA Builder Utility</title>
   </head>
   <body class="container">
-    <h1 class="display-4">
+    <h3 class="display-5">
       TWA Builder Utility
-    </h1>
+    </h3>
     <h5 class="display-5"><small class="text-muted">Generate a TWA APK from a website</small></h5>
     <!-- <br> -->
     <div id=basicAdvancedToggleDiv>
@@ -25,10 +25,19 @@
 
     <div class="card w-100">
       <div id="basicInputDiv" class="card-body">
-        <label for="urlInput">URL:</label>
-        <input type="text" id="urlInput" name="urlInput"><br>
+        <label for="urlInput">&nbsp;&nbsp;&nbsp;Your URL:</label>
+        <input type="text" id="urlInput" name="urlInput" value="https://petalsearch.com/">
+
+        <label for="iconLauncherUrlInput">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Icon  URL:</label>
+        <input type="text" id="iconLauncherUrlInput" name="iconLauncherUrlInput" value="./image/launcher_icon_512x512.png"><br>
+        
         <label for="appName">App Name:</label>
-        <input type="text" id="appName" name="appName"><br>
+        <input type="text" id="appName" name="appName" value="Petal">
+
+        <label for="iconMaskableUrlInput">Icon Maskable URL:</label>
+        <input type="text" id="iconMaskableUrlInput" name="iconMaskableUrlInput" value="./image/maskable_icon_512x512.png"><br>
+
+        
       </div>
       <div id="advancedOptionDiv" class="card-header d-flex align-items-center" style="display: none;">
         <span class="flex-grow-1" style="display: none;">JSON</span>
@@ -59,7 +68,7 @@
         Results
       </div>
       <div class="card-body">
-        <pre id="results"></pre>
+        <pre id="results" wrap="on"></pre>
       </div>
     </div>
 

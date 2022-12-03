@@ -218,16 +218,22 @@ class TwaGenerator_v2 {
         var icon, image_data;
         try{ 
             if (valid_url.isWebUri(iconUrl)) {
+                //sundy error process, placeholder
                 icon = await this.imageHelper.fetchIcon(iconUrl);
                 image_data = icon.data;
             }
             else{
+                //sundy error process, placeholder
                 image_data = await Jimp.read(iconUrl);
             }
         }catch(error)
         {
-            console.error("Error:" );
-            return null;
+            const strErr = "Error for icon url: " +iconUrl + ".  "  +error; 
+            console.error(strErr );
+            /*process.kill(process.pid, 'SIGTERM');
+            process.kill(process.pid, 'SIGINT');
+            process.exit(1);*/
+            return strErr;
         }
 
         await Promise.all(iconList.map((iconDef) => {
@@ -351,21 +357,38 @@ class TwaGenerator_v2 {
         progress.update();
         // Generate images
         if (twaManifest.iconUrl) {
-            await this.generateIcons(twaManifest.iconUrl, targetDirectory, IMAGES);
-            await this.generateIcons(twaManifest.iconUrl, targetDirectory, SPLASH_IMAGES, twaManifest.backgroundColor);
+            const strResult1 = await this.generateIcons(twaManifest.iconUrl, targetDirectory, IMAGES);
+            const strResult2 = await this.generateIcons(twaManifest.iconUrl, targetDirectory, SPLASH_IMAGES, twaManifest.backgroundColor);
+            //sundy if generateIcons succ or fail?
+            if( strResult1 != undefined ){// failed
+               return strResult1; //error returned  . sundy 
+            }
+
+            if( strResult2 != undefined){// failed
+               return strResult2; //error returned  . sundy 
+            }
         }
         progress.update();
         await this.generateShortcuts(targetDirectory, templateDirectory, twaManifest);
         progress.update();
         // Generate adaptive images
         if (twaManifest.maskableIconUrl) {
-            await this.generateIcons(twaManifest.maskableIconUrl, targetDirectory, ADAPTIVE_IMAGES);
+           const strResult =  await this.generateIcons(twaManifest.maskableIconUrl, targetDirectory, ADAPTIVE_IMAGES);
+            //sundy if generateIcons succ or fail?
+            if( strResult != undefined ){// failed
+               return strResult; //error returned  . sundy 
+            }
+
         }
         progress.update();
         // Generate notification images
         const iconOrMonochromeIconUrl = twaManifest.monochromeIconUrl || twaManifest.iconUrl;
         if (twaManifest.enableNotifications && iconOrMonochromeIconUrl) {
-            await this.generateIcons(iconOrMonochromeIconUrl, targetDirectory, NOTIFICATION_IMAGES);
+           const strResult = await this.generateIcons(iconOrMonochromeIconUrl, targetDirectory, NOTIFICATION_IMAGES);
+           //sundy if generateIcons succ or fail?
+            if( strResult != undefined ){// failed
+               return strResult; //error returned  . sundy 
+            }
         }
         progress.update();
         if (twaManifest.webManifestUrl) {

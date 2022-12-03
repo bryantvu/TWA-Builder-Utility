@@ -16,7 +16,7 @@ const resultsDiv = document.querySelector("#results");
 const spinner = document.querySelector(".spinner-border");
 
 var basicMode = true;
-
+//var strResGenerateApp={err:""};
 //sundy comment below lines 11172022
 //unsignedBtn.addEventListener("click", () => setCode(getUnsignedApkOptions()));
 signedBtn.addEventListener("click", () => setCode(getUnsignedApkOptions())); 
@@ -37,6 +37,7 @@ function setWindowModeListener(){
     
     $('input:checkbox').change(
         function(){
+            resultsDiv.textContent = "";//clear the old result , Sundy
             if ($(this).is(':checked') && $(this).is('#advancedSwitch')) {
                 console.log("advanced mode on");
                 basicMode = false;
@@ -73,8 +74,8 @@ function setCode(options) {
 function getUnsignedApkOptions() {
     return {
         host: "https://bing.com",
-        iconUrl: "./image/launch_icon_early_spring_draw_512x512.png",
-        maskableIconUrl:"./image/maskable_icon_app_icon_lake_lawn_512x512.png",
+        iconUrl: "./image/launcher_icon_512x512.png",
+        maskableIconUrl:"./image/maskable_icon_512x512.png",
         //monochromeIconUrl: undefined,   sundy
         launcherName: "Bing",
         name: "Bing",
@@ -167,7 +168,7 @@ function getUnsignedApkOptions() {
 
 function keyFileChosen(e) {
     console.log("file selected:", filePicker.files);
-    if (filePicker.files) {
+    if (filePicker.files.length >0) { //if some file selected, otherwise skipped. sundy
         
         options =getUnsignedApkOptions();
         options.signing.keyFilePath = filePicker.files[0].path;
@@ -176,6 +177,12 @@ function keyFileChosen(e) {
         options.signing.storePassword = "huawei";
         //options.signing.keyFilePath = options.keyFilePath;
         console.log("file selected:", options.signing.keyFilePath);
+        delete options.signing.alias;
+        delete options.signing.fullName;
+        delete options.signing.organization;
+        delete options.signing.organizationalUnit;
+        delete options.signing.countryCode;
+
         setCode(options );
     /*    const keyPathSelected = filePicker.files[0].path;
         keyOptions= {path: keyPathSelected, password: options.storePassword, keypassword:options.keyPassword};
@@ -233,9 +240,13 @@ async function submit() {
             packageId = packageId + ".twa"; 
             jsonOption.packageId = packageId;
 
-            //sundy get App Name
+            //sundy get App Name, iconUrl, maskableIconUrl
             jsonOption.launcherName = appName ; 
             jsonOption.name= appName ; 
+
+            jsonOption.iconUrl = document.getElementById("iconLauncherUrlInput").value;
+            jsonOption.maskableIconUrl = document.getElementById("iconMaskableUrlInput").value;
+ 
 
             options = JSON.stringify(jsonOption);
             console.log("options: " + options);
@@ -246,10 +257,10 @@ async function submit() {
             const jsonOption = JSON.parse(codeArea.value) ;
             options = JSON.stringify(jsonOption);
         }
-        await window.versions.generateApp(options,basicMode);// preload.js generateApp
+         await window.versions.generateApp(options,basicMode);// preload.js generateApp
 
     } catch(err) {
-        resultsDiv.textContent = "Failed. Error: " + err;
+        resultsDiv.textContent = "Failed! "  + err ;
     }
     finally {
         setLoading(false);
