@@ -248,11 +248,12 @@ async function submit() {
             jsonOption.maskableIconUrl = document.getElementById("iconMaskableUrlInput").value;
  
 
-            options = JSON.stringify(jsonOption);
-            console.log("options: " + options);
+            //console.log("options: " + options);
             console.log("jsonoptions: " + jsonOption+", jsonoptions.host:" + jsonOption.host);
 
-            setCode(options); //asign to texarea  sundy
+            setCode(jsonOption); //asign to texarea  sundy
+
+            options = JSON.stringify(jsonOption);
         } else{
             const jsonOption = JSON.parse(codeArea.value) ;
             options = JSON.stringify(jsonOption);
