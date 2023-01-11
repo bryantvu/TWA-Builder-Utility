@@ -18,7 +18,7 @@
   "license": "CC0-1.0",
   "devDependencies": {
     "@bubblewrap/core": "^1.17.0",
-    "electron": "^21.3.1"
+    "electron": "^22.0.1"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
